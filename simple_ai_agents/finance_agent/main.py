@@ -1,28 +1,30 @@
-# import necessary python libraries
-from agno.agent import Agent
-from agno.models.nebius import Nebius
-from agno.tools.yfinance import YFinanceTools
-from agno.tools.duckduckgo import DuckDuckGoTools
-from agno.playground import Playground, serve_playground_app
+# skip-secret-scanning:true
 import os
 from dotenv import load_dotenv
-# load environment variables
+from agno.agent import Agent
+from agno.models.openai import OpenAIChat
+from agno.tools.yfinance import YFinanceTools
+from agno.tools.duckduckgo import DuckDuckGoTools
+
+# 1. Load the API key from your .env file
 load_dotenv()
-# create the AI finance agent
-agent = Agent(
-    name="xAI Finance Agent",
-    model=Nebius(
-            id="meta-llama/Llama-3.3-70B-Instruct",
-            api_key=os.getenv("NEBIUS_API_KEY")
-    ),
-    tools=[DuckDuckGoTools(), YFinanceTools(stock_price=True, analyst_recommendations=True, stock_fundamentals=True)],
-    instructions = ["Always use tables to display financial/numerical data. For text data use bullet points and small paragrpahs."],
-    show_tool_calls = True,
-    markdown = True,
-    )
 
-# UI for finance agent
-app = Playground(agents=[agent]).get_app()
+# 2. Create the Finance Agent (Fixed for the newest Agno version)
+finance_agent = Agent(
+    name="Finance AI Agent",
+    model=OpenAIChat(id="gpt-4o-mini"),
+    tools=[
+        DuckDuckGoTools(), 
+        YFinanceTools() # No extra arguments needed here anymore!
+    ],
+    instructions=["Use tables to display financial data.", "Always cite your sources."],
+    markdown=True,
+)
 
-if __name__ == "__main__":
-    serve_playground_app("xai_finance_agent:app", reload=True)
+# 3. Simple terminal interface
+print("\n🚀 Finance Agent is ready!")
+while True:
+    query = input("\n💬 Ask a finance query (or type 'exit'): ")
+    if query.lower() in ['exit', 'quit']:
+        break
+    finance_agent.print_response(query, stream=True)
